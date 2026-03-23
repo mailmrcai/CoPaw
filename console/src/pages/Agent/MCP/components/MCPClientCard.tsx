@@ -305,7 +305,8 @@ export function MCPClientCard({
                     marginBottom: 4,
                   }}
                 >
-                  {testResult.success ? "Success" : "Failed"}: {testResult.message}
+                  {testResult.success ? "Success" : "Failed"}:{" "}
+                  {testResult.message}
                 </div>
                 {testResult.tools && testResult.tools.length > 0 && (
                   <div style={{ fontSize: 13 }}>

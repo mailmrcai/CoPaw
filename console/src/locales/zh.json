@@ -155,7 +155,7 @@
     "zipOnly": "仅支持上传 .zip 文件",
     "fileSizeExceeded": "文件大小超过 100MB 限制。当前文件：{{size}}MB"
   },
-    "mcp": {
+  "mcp": {
     "title": "MCP 客户端",
     "description": "管理模型上下文协议（MCP）客户端以扩展智能体能力。",
     "create": "创建客户端",
