@@ -155,10 +155,12 @@
     "zipOnly": "仅支持上传 .zip 文件",
     "fileSizeExceeded": "文件大小超过 100MB 限制。当前文件：{{size}}MB"
   },
-  "mcp": {
+    "mcp": {
     "title": "MCP 客户端",
     "description": "管理模型上下文协议（MCP）客户端以扩展智能体能力。",
     "create": "创建客户端",
+    "editClient": "编辑客户端",
+    "createClient": "创建新客户端",
     "formatSupport": "支持的格式",
     "emptyState": "暂无配置的 MCP 客户端",
     "loadError": "加载 MCP 客户端失败",
@@ -171,7 +173,29 @@
     "toggleError": "切换 MCP 客户端状态失败",
     "deleteConfirm": "确定要删除此 MCP 客户端吗？",
     "deleteSuccess": "MCP 客户端删除成功",
-    "deleteError": "MCP 客户端删除失败"
+    "deleteError": "MCP 客户端删除失败",
+    "testConnection": "测试连接",
+    "testSuccess": "连接测试成功",
+    "testError": "连接测试失败",
+    "viewTools": "查看工具",
+    "fetchToolsError": "获取工具列表失败",
+    "key": "标识符",
+    "keyRequired": "请输入客户端标识符",
+    "keyPlaceholder": "例如: my-mcp-server",
+    "name": "名称",
+    "nameRequired": "请输入名称",
+    "namePlaceholder": "例如: 我的 MCP 服务器",
+    "descriptionPlaceholder": "简要描述此客户端的功能...",
+    "command": "启动命令",
+    "commandRequired": "请输入启动命令",
+    "commandPlaceholder": "例如: npx, python, node",
+    "args": "参数",
+    "argsHelp": "命令行参数，空格分隔",
+    "argsPlaceholder": "例如: -y @modelcontextprotocol/server-everything",
+    "env": "环境变量",
+    "envHelp": "JSON 格式的环境变量",
+    "envPlaceholder": "{ \"API_KEY\": \"...\" }",
+    "enabled": "启用"
   },
   "heartbeat": {
     "title": "心跳",
@@ -412,11 +436,6 @@
     "refresh": "刷新",
     "loadFailed": "加载 Token 消耗数据失败",
     "noData": "所选时间段内暂无 Token 消耗数据"
-  },
-  "modelSelector": {
-    "selectModel": "选择模型",
-    "noConfiguredModels": "暂无已配置模型",
-    "switchFailed": "切换模型失败"
   },
   "models": {
     "llmConfiguration": "LLM 配置",

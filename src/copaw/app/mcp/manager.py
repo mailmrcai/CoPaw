@@ -10,7 +10,16 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
-from typing import Any, Dict, List, TYPE_CHECKING
+from typing import Any, Dict, List, TYPE_CHECKING, TypedDict
+
+# ... (rest of imports)
+
+class MCPClientTestResult(TypedDict):
+    """Result of an MCP client connection test."""
+
+    success: bool
+    message: str
+    tools: List[Dict[str, Any]]
 
 from agentscope.mcp import HttpStatefulClient, StdIOStatefulClient
 
@@ -163,6 +172,95 @@ class MCPClientManager:
                     await client.close()
                 except Exception as e:
                     logger.warning(f"Error closing MCP client '{key}': {e}")
+
+    async def get_client_tools(self, key: str) -> List[Dict[str, Any]]:
+        """Get list of available tools for a specific client.
+
+        Args:
+            key: Client identifier (from config)
+
+        Returns:
+            List of tool definitions from the MCP server
+        """
+        async with self._lock:
+            client = self._clients.get(key)
+        
+        if client is None:
+            raise KeyError(f"MCP client '{key}' not found or not connected")
+        
+        tools = await client.list_tools()
+        result = []
+        for tool in tools:
+            if hasattr(tool, "model_dump"):
+                result.append(tool.model_dump())
+            elif hasattr(tool, "dict"):
+                result.append(tool.dict())
+            else:
+                result.append(tool)
+        return result
+
+    async def test_connection(
+        self,
+        client_config: "MCPClientConfig",
+        timeout: float = 30.0,
+    ) -> Dict[str, Any]:
+        """Test connection to an MCP server.
+
+        Args:
+            client_config: Config to test
+            timeout: Connection timeout in seconds (default 30s)
+
+        Returns:
+            Dict containing success status, message, and tools if successful
+        """
+        logger.debug(f"Testing MCP connection: {client_config.name}")
+        client = self._build_client(client_config)
+
+        try:
+            # Try to connect
+            await asyncio.wait_for(client.connect(), timeout=timeout)
+
+            # If successful, also try to list tools to verify full functionality
+            try:
+                tools = await client.list_tools()
+                tools_list = []
+                for tool in tools:
+                    if hasattr(tool, "model_dump"):
+                        tools_list.append(tool.model_dump())
+                    elif hasattr(tool, "dict"):
+                        tools_list.append(tool.dict())
+                    else:
+                        tools_list.append(tool)
+                
+                return {
+                    "success": True,
+                    "message": "Connection successful",
+                    "tools": tools_list,
+                }
+            except Exception as e:
+                return {
+                    "success": True,
+                    "message": f"Connected, but failed to list tools: {e}",
+                    "tools": [],
+                }
+            finally:
+                # Always close the temporary client
+                try:
+                    await client.close()
+                except Exception:
+                    pass
+        except asyncio.TimeoutError:
+            return {
+                "success": False,
+                "message": f"Connection timed out after {timeout}s",
+                "tools": [],
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "message": f"Connection failed: {str(e)}",
+                "tools": [],
+            }
 
     async def _add_client(
         self,

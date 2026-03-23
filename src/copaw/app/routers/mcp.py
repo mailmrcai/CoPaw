@@ -128,6 +128,20 @@ class MCPClientUpdateRequest(BaseModel):
     )
 
 
+class MCPClientTestResponse(BaseModel):
+    """Response for MCP connection test."""
+
+    success: bool = Field(..., description="Whether the test was successful")
+    message: str = Field(..., description="Details about the test result")
+    tools: List[Dict[str, Any]] = Field(
+        default_factory=list,
+        description="List of tools provided by the MCP server",
+    )
+
+
+from typing import Any
+
+
 def _mask_env_value(value: str) -> str:
     """
     Mask environment variable value showing first 2-3 chars and last 4 chars.
@@ -452,3 +466,67 @@ async def delete_mcp_client(
     asyncio.create_task(reload_in_background())
 
     return {"message": f"MCP client '{client_key}' deleted successfully"}
+
+
+@router.post(
+    "/test",
+    response_model=MCPClientTestResponse,
+    summary="Test MCP client connection",
+)
+async def test_mcp_connection(
+    request: Request,
+    config: MCPClientCreateRequest = Body(...),
+) -> MCPClientTestResponse:
+    """Test connection to an MCP server without saving it."""
+    from ..agent_context import get_agent_for_request
+    from ...config.config import MCPClientConfig
+
+    agent = await get_agent_for_request(request)
+    mcp_manager = agent.mcp_manager
+
+    # Create client config from request
+    client_config = MCPClientConfig(
+        name=config.name,
+        description=config.description,
+        enabled=True,
+        transport=config.transport,
+        url=config.url,
+        headers=config.headers,
+        command=config.command,
+        args=config.args,
+        env=config.env,
+        cwd=config.cwd,
+    )
+
+    result = await mcp_manager.test_connection(client_config)
+    return MCPClientTestResponse(**result)
+
+
+@router.get(
+    "/{client_key}/tools",
+    response_model=List[Dict[str, Any]],
+    summary="List MCP client tools",
+)
+async def list_mcp_client_tools(
+    request: Request,
+    client_key: str = Path(...),
+) -> List[Dict[str, Any]]:
+    """Get list of tools currently served by an MCP client."""
+    from ..agent_context import get_agent_for_request
+
+    agent = await get_agent_for_request(request)
+    mcp_manager = agent.mcp_manager
+
+    try:
+        tools = await mcp_manager.get_client_tools(client_key)
+        return tools
+    except KeyError:
+        raise HTTPException(
+            status_code=404,
+            detail=f"MCP client '{client_key}' not found or not currently active",
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to fetch tools: {str(e)}",
+        )

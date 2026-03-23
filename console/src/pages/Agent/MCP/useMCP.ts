@@ -119,6 +119,39 @@ export function useMCP() {
     [t, loadClients],
   );
 
+  const testConnection = useCallback(
+    async (config: any) => {
+      try {
+        const result = await api.testMCPConnection(config);
+        if (result.success) {
+          message.success(result.message);
+        } else {
+          message.warning(result.message);
+        }
+        return result;
+      } catch (error: any) {
+        const errorMsg = error?.message || t("mcp.testError");
+        message.error(errorMsg);
+        return { success: false, message: errorMsg, tools: [] };
+      }
+    },
+    [t],
+  );
+
+  const getClientTools = useCallback(
+    async (key: string) => {
+      try {
+        const tools = await api.getMCPClientTools(key);
+        return tools;
+      } catch (error: any) {
+        const errorMsg = error?.message || t("mcp.fetchToolsError");
+        message.error(errorMsg);
+        return [];
+      }
+    },
+    [t],
+  );
+
   return {
     clients,
     loading,
@@ -126,5 +159,7 @@ export function useMCP() {
     updateClient,
     toggleEnabled,
     deleteClient,
+    testConnection,
+    getClientTools,
   };
 }

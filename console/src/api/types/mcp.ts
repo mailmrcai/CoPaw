@@ -77,3 +77,33 @@ export interface MCPClientUpdateRequest {
   /** Working directory for stdio command */
   cwd?: string;
 }
+
+export interface MCPClientTestRequest {
+  /** Client display name */
+  name: string;
+  /** Client description */
+  description?: string;
+  /** MCP transport type */
+  transport: "stdio" | "streamable_http" | "sse";
+  /** Remote MCP endpoint URL for HTTP/SSE transport */
+  url?: string;
+  /** HTTP headers for remote transport */
+  headers?: Record<string, string>;
+  /** Command to launch the MCP server */
+  command?: string;
+  /** Command-line arguments */
+  args?: string[];
+  /** Environment variables */
+  env?: Record<string, string>;
+  /** Working directory for stdio command */
+  cwd?: string;
+}
+
+export interface MCPClientTestResponse {
+  /** Whether the test was successful */
+  success: boolean;
+  /** Details about the test result */
+  message: string;
+  /** List of tools provided by the MCP server */
+  tools: any[];
+}

@@ -193,6 +193,8 @@
     "title": "MCP Clients",
     "description": "Manage Model Context Protocol (MCP) clients for extending agent capabilities.",
     "create": "Create Client",
+    "editClient": "Edit Client",
+    "createClient": "Create New Client",
     "formatSupport": "Supported formats",
     "emptyState": "No MCP clients configured yet",
     "loadError": "Failed to load MCP clients",
@@ -205,7 +207,29 @@
     "toggleError": "Failed to toggle MCP client status",
     "deleteConfirm": "Are you sure you want to delete this MCP client?",
     "deleteSuccess": "MCP client deleted successfully",
-    "deleteError": "Failed to delete MCP client"
+    "deleteError": "Failed to delete MCP client",
+    "testConnection": "Test Connection",
+    "viewTools": "View Tools",
+    "fetchToolsError": "Failed to fetch tool list",
+    "key": "Identifier",
+    "keyRequired": "Please enter client identifier",
+    "keyPlaceholder": "e.g.: my-mcp-server",
+    "name": "Name",
+    "nameRequired": "Please enter name",
+    "namePlaceholder": "e.g.: My MCP Server",
+    "descriptionPlaceholder": "Briefly describe this client's purpose...",
+    "command": "Launch Command",
+    "commandRequired": "Please enter launch command",
+    "commandPlaceholder": "e.g.: npx, python, node",
+    "args": "Arguments",
+    "argsHelp": "Command-line arguments, space-separated",
+    "argsPlaceholder": "e.g.: -y @modelcontextprotocol/server-everything",
+    "env": "Environment Variables",
+    "envHelp": "JSON format environment variables",
+    "envPlaceholder": "{ \"API_KEY\": \"...\" }",
+    "enabled": "Enabled",
+    "testError": "Failed to test connection",
+    "testSuccess": "Connection test successful"
   },
   "heartbeat": {
     "title": "Heartbeat",
@@ -430,11 +454,6 @@
     "variables": "variables",
     "showValue": "Show value",
     "hideValue": "Hide value"
-  },
-  "modelSelector": {
-    "selectModel": "Select model",
-    "noConfiguredModels": "No configured models",
-    "switchFailed": "Failed to switch model"
   },
   "tokenUsage": {
     "title": "Token Usage",

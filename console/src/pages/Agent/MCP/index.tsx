@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, Empty, Modal, Input } from "@agentscope-ai/design";
+import { Button, Empty, Modal, message } from "@agentscope-ai/design";
 import type { MCPClientInfo } from "../../../api/types";
 import { MCPClientCard } from "./components";
 import { useMCP } from "./useMCP";
@@ -58,9 +58,17 @@ function MCPPage() {
     deleteClient,
     createClient,
     updateClient,
+    testConnection,
+    getClientTools,
   } = useMCP();
   const [hoverKey, setHoverKey] = useState<string | null>(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{
+    success: boolean;
+    message: string;
+    tools: any[];
+  } | null>(null);
   const [newClientJson, setNewClientJson] = useState(`{
   "mcpServers": {
     "example-client": {
@@ -158,6 +166,45 @@ function MCPPage() {
     }
   };
 
+  const handleTestConnection = async () => {
+    try {
+      const parsed = JSON.parse(newClientJson);
+      setTesting(true);
+      setTestResult(null);
+
+      // Extract the first server config to test
+      let configToTest: any = null;
+      if (parsed.mcpServers) {
+        const entries = Object.entries(parsed.mcpServers);
+        if (entries.length > 0) {
+          configToTest = normalizeClientData(entries[0][0], entries[0][1]);
+        }
+      } else if (
+        parsed.key &&
+        (parsed.command || parsed.url || parsed.baseUrl)
+      ) {
+        configToTest = normalizeClientData(parsed.key, parsed);
+      } else {
+        const entries = Object.entries(parsed);
+        if (entries.length > 0) {
+          configToTest = normalizeClientData(entries[0][0], entries[0][1]);
+        }
+      }
+
+      if (!configToTest) {
+        message.error("No valid MCP configuration found to test");
+        return;
+      }
+
+      const result = await testConnection(configToTest);
+      setTestResult(result);
+    } catch (error) {
+      message.error("Invalid JSON format");
+    } finally {
+      setTesting(false);
+    }
+  };
+
   return (
     <div style={{ padding: 24 }}>
       <div
@@ -202,6 +249,8 @@ function MCPPage() {
               onToggle={handleToggleEnabled}
               onDelete={handleDelete}
               onUpdate={updateClient}
+              getClientTools={getClientTools}
+              testConnection={testConnection}
               isHovered={hoverKey === client.key}
               onMouseEnter={() => setHoverKey(client.key)}
               onMouseLeave={() => setHoverKey(null)}
@@ -215,16 +264,31 @@ function MCPPage() {
         open={createModalOpen}
         onCancel={() => setCreateModalOpen(false)}
         footer={
-          <div style={{ textAlign: "right" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
             <Button
-              onClick={() => setCreateModalOpen(false)}
-              style={{ marginRight: 8 }}
+              onClick={handleTestConnection}
+              loading={testing}
+              disabled={!newClientJson.trim()}
             >
-              {t("common.cancel")}
+              {t("mcp.testConnection")}
             </Button>
-            <Button type="primary" onClick={handleCreateClient}>
-              {t("common.create")}
-            </Button>
+            <div>
+              <Button
+                onClick={() => setCreateModalOpen(false)}
+                style={{ marginRight: 8 }}
+              >
+                {t("common.cancel")}
+              </Button>
+              <Button type="primary" onClick={handleCreateClient}>
+                {t("common.create")}
+              </Button>
+            </div>
           </div>
         }
         width={800}
@@ -254,15 +318,70 @@ function MCPPage() {
             </li>
           </ul>
         </div>
-        <Input.TextArea
+        <textarea
           value={newClientJson}
           onChange={(e) => setNewClientJson(e.target.value)}
-          autoSize={{ minRows: 15, maxRows: 25 }}
           style={{
+            width: "100%",
+            minHeight: 400,
             fontFamily: "Monaco, Courier New, monospace",
             fontSize: 13,
+            padding: 16,
+            border: "1px solid #d9d9d9",
+            borderRadius: 4,
+            resize: "vertical",
           }}
         />
+        {testResult && (
+          <div
+            style={{
+              marginTop: 16,
+              padding: 12,
+              borderRadius: 4,
+              backgroundColor: testResult.success ? "#f6ffed" : "#fff2f0",
+              border: `1px solid ${testResult.success ? "#b7eb8f" : "#ffccc7"}`,
+            }}
+          >
+            <div
+              style={{
+                fontWeight: 600,
+                color: testResult.success ? "#52c41a" : "#ff4d4f",
+                marginBottom: 4,
+              }}
+            >
+              {testResult.success ? "Success" : "Failed"}: {testResult.message}
+            </div>
+            {testResult.tools && testResult.tools.length > 0 && (
+              <div style={{ fontSize: 13 }}>
+                <div style={{ fontWeight: 600, marginBottom: 4 }}>
+                  Available Tools ({testResult.tools.length}):
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 4,
+                  }}
+                >
+                  {testResult.tools.map((tool: any) => (
+                    <span
+                      key={tool.name}
+                      style={{
+                        padding: "2px 8px",
+                        backgroundColor: "#fff",
+                        border: "1px solid #d9d9d9",
+                        borderRadius: 2,
+                        fontSize: 12,
+                      }}
+                    >
+                      {tool.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </Modal>
     </div>
   );
